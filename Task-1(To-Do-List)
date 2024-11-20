@@ -1,0 +1,117 @@
+import json
+import tkinter as tk
+from tkinter import messagebox
+
+
+def load_tasks(filename="tasks.json"):
+    try:
+        with open(filename, "r") as file:
+            return json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+
+def save_tasks(tasks, filename="tasks.json"):
+    with open(filename, "w") as file:
+        json.dump(tasks, file, indent=4)
+
+
+def refresh_tasks():
+    task_listbox.delete(0, tk.END)
+    for index, task in enumerate(tasks):
+        status = "✔️" if task["done"] else "❌"
+        task_listbox.insert(tk.END, f"{index + 1}. {task['task']} - {status}")
+
+
+def add_task():
+    task = task_entry.get().strip()
+    if task:
+        tasks.append({"task": task, "done": False})
+        task_entry.delete(0, tk.END)
+        refresh_tasks()
+    else:
+        messagebox.showwarning("Warning", "Task cannot be empty!")
+
+
+def mark_done():
+    selected_index = task_listbox.curselection()
+    if selected_index:
+        index = selected_index[0]
+        tasks[index]["done"] = True
+        refresh_tasks()
+    else:
+        messagebox.showwarning("Warning", "Please select a task to mark as done!")
+
+
+def delete_task():
+    selected_index = task_listbox.curselection()
+    if selected_index:
+        index = selected_index[0]
+        tasks.pop(index)
+        refresh_tasks()
+    else:
+        messagebox.showwarning("Warning", "Please select a task to delete!")
+
+
+def save_and_exit():
+    save_tasks(tasks)
+    root.destroy()
+
+
+tasks = load_tasks()
+
+
+root = tk.Tk()
+root.title("To-Do List App")
+root.geometry("500x600")
+root.config(bg="lightblue")  
+
+
+headline = tk.Label(root, text="TO-DO LIST", font=("Arial", 24, "bold"), bg="lightblue", fg="darkblue")
+headline.pack(pady=20)
+
+
+input_frame = tk.Frame(root, bg="lightblue")
+input_frame.pack(pady=20)
+
+
+task_entry = tk.Entry(input_frame, width=40, font=("Arial", 12))
+task_entry.grid(row=0, column=0, padx=5)
+
+
+add_button = tk.Button(input_frame, text="Add Task", command=add_task,
+                    bg="lightgreen", fg="black", activebackground="green", activeforeground="white",
+                    font=("Arial", 10, "bold"))
+add_button.grid(row=0, column=1, padx=5)
+
+
+task_listbox = tk.Listbox(root, width=50, height=10, selectmode=tk.SINGLE,
+                        font=("Arial", 12), bg="#ffffff", fg="black")
+task_listbox.pack(pady=20)
+
+
+button_frame = tk.Frame(root, bg="lightblue")
+button_frame.pack(pady=20)
+
+
+done_button = tk.Button(button_frame, text="Mark as Done", command=mark_done,
+                        bg="lightyellow", fg="black", activebackground="yellow", activeforeground="black",
+                        font=("Arial", 10, "bold"))
+done_button.grid(row=0, column=0, padx=10)
+
+
+delete_button = tk.Button(button_frame, text="Delete Task", command=delete_task,
+                        bg="salmon", fg="black", activebackground="red", activeforeground="white",
+                        font=("Arial", 10, "bold"))
+delete_button.grid(row=0, column=1, padx=10)
+
+
+exit_button = tk.Button(button_frame, text="Save and Exit", command=save_and_exit,
+                        bg="lightgray", fg="black", activebackground="darkgray", activeforeground="white",
+                        font=("Arial", 10, "bold"))
+exit_button.grid(row=0, column=2, padx=10)
+
+
+refresh_tasks()
+
+root.mainloop()
